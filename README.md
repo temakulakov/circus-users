@@ -103,5 +103,4 @@ dotnet publish circus-users/circus-users.csproj -c Release -p:Platform=x64 -r wi
 | `Storage:SharedSettingsPath` | Папка общих настроек и журнала |
 
 Токен почты вводится в настройках приложения администратором, в конфиге его нет.
-Права токена: `directory:read_users`, `directory:write_users`, `directory:read_groups`,
-`directory:write_groups`.
+Как его выпустить — [docs/yandex-360-token.md](docs/yandex-360-token.md).
