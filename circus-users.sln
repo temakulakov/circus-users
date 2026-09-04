@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37614.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "circus-users", "circus-users\circus-users.csproj", "{F25B1364-28BF-459C-A64C-A9C25F22EBA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Circus.Users.Core", "Circus.Users.Core\Circus.Users.Core.csproj", "{6640BC3D-E88E-476E-B774-5AA6783D4153}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Circus.Users.Core.Tests", "Circus.Users.Core.Tests\Circus.Users.Core.Tests.csproj", "{AFB83817-CAFF-46F4-AFE9-2D73490F4168}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|ARM64.Build.0 = Debug|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x64.ActiveCfg = Debug|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x64.Build.0 = Debug|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x64.Deploy.0 = Debug|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x86.ActiveCfg = Debug|x86
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x86.Build.0 = Debug|x86
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Debug|x86.Deploy.0 = Debug|x86
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|ARM64.ActiveCfg = Release|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|ARM64.Build.0 = Release|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|ARM64.Deploy.0 = Release|ARM64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x64.ActiveCfg = Release|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x64.Build.0 = Release|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x64.Deploy.0 = Release|x64
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x86.ActiveCfg = Release|x86
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x86.Build.0 = Release|x86
+		{F25B1364-28BF-459C-A64C-A9C25F22EBA7}.Release|x86.Deploy.0 = Release|x86
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|ARM64.Build.0 = Debug|ARM64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|x64.ActiveCfg = Debug|x64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|x64.Build.0 = Debug|x64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|x86.ActiveCfg = Debug|x86
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Debug|x86.Build.0 = Debug|x86
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|ARM64.ActiveCfg = Release|ARM64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|ARM64.Build.0 = Release|ARM64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|x64.ActiveCfg = Release|x64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|x64.Build.0 = Release|x64
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|x86.ActiveCfg = Release|x86
+		{6640BC3D-E88E-476E-B774-5AA6783D4153}.Release|x86.Build.0 = Release|x86
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|ARM64.Build.0 = Debug|ARM64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|x64.ActiveCfg = Debug|x64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|x64.Build.0 = Debug|x64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|x86.ActiveCfg = Debug|x86
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Debug|x86.Build.0 = Debug|x86
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|ARM64.ActiveCfg = Release|ARM64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|ARM64.Build.0 = Release|ARM64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|x64.ActiveCfg = Release|x64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|x64.Build.0 = Release|x64
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|x86.ActiveCfg = Release|x86
+		{AFB83817-CAFF-46F4-AFE9-2D73490F4168}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CEF42F5F-1B74-4A15-B3D5-72833A0F607B}
+	EndGlobalSection
+EndGlobal

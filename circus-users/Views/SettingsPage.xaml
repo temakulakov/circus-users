@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Circus.Users.App.Views.SettingsPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Circus.Users.App.Controls"
+    xmlns:vm="using:Circus.Users.App.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <!-- Ширину задаёт колонка, а не содержимое: иначе появление и скрытие палитры
+             двигало бы всю страницу. -->
+        <Grid Margin="{StaticResource PageContentMargin}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="{StaticResource SettingsCardMaxWidth}" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="8">
+
+            <TextBlock Text="Настройки"
+                       Style="{StaticResource TitleTextBlockStyle}"
+                       Margin="0,0,0,12" />
+
+            <!-- Оформление -->
+            <TextBlock Text="Оформление"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,8,0,4" />
+
+            <controls:SettingCard Header="Тема"
+                                  Description="Светлое или тёмное оформление приложения"
+                                  Glyph="&#xE706;">
+                <controls:SettingCard.ActionContent>
+                    <ComboBox MinWidth="180"
+                              AutomationProperties.AutomationId="ThemeCombo"
+                              AutomationProperties.Name="Тема"
+                              SelectedIndex="{x:Bind ViewModel.ThemeIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Как в системе" />
+                        <ComboBoxItem Content="Светлая" />
+                        <ComboBoxItem Content="Тёмная" />
+                    </ComboBox>
+                </controls:SettingCard.ActionContent>
+            </controls:SettingCard>
+
+            <controls:SettingCard Header="Прозрачность окна"
+                                  Description="Материал, которым отрисовывается фон окна"
+                                  Glyph="&#xE790;">
+                <controls:SettingCard.ActionContent>
+                    <ComboBox MinWidth="180"
+                              AutomationProperties.AutomationId="BackdropCombo"
+                              AutomationProperties.Name="Прозрачность окна"
+                              ItemsSource="{x:Bind ViewModel.BackdropOptions}"
+                              DisplayMemberPath="Title"
+                              SelectedItem="{x:Bind ViewModel.SelectedBackdrop, Mode=TwoWay}" />
+                </controls:SettingCard.ActionContent>
+            </controls:SettingCard>
+
+            <!-- Акцентный цвет -->
+            <TextBlock Text="Акцентный цвет"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,16,0,4" />
+
+            <controls:SettingCard Header="Брать цвет из системы"
+                                  Description="Использовать акцент, заданный в параметрах Windows"
+                                  Glyph="&#xE771;">
+                <controls:SettingCard.ActionContent>
+                    <ToggleSwitch AutomationProperties.AutomationId="SystemAccentToggle"
+                                  AutomationProperties.Name="Брать цвет из системы"
+                                  IsOn="{x:Bind ViewModel.UseSystemAccent, Mode=TwoWay}" />
+                </controls:SettingCard.ActionContent>
+            </controls:SettingCard>
+
+            <!-- При системном акценте выбирать нечего, поэтому палитра убирается целиком. -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}"
+                    Padding="16,14"
+                    Visibility="{x:Bind ViewModel.PaletteVisibility, Mode=OneWay}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Палитра" />
+
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.Presets}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="48"
+                                               MinItemHeight="48"
+                                               MinColumnSpacing="2"
+                                               MinRowSpacing="2" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AccentPreset">
+                                <!-- Цвет лежит во вложенном Border: у кнопки собственная
+                                     заливка меняется по состояниям наведения и затёрла бы образец. -->
+                                <Button Width="46"
+                                        Height="46"
+                                        Padding="0"
+                                        BorderThickness="0"
+                                        CornerRadius="6"
+                                        Background="Transparent"
+                                        HorizontalContentAlignment="Stretch"
+                                        VerticalContentAlignment="Stretch"
+                                        Click="OnPresetClick"
+                                        RightTapped="OnPresetRightTapped"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{x:Bind Hex}"
+                                        AutomationProperties.Name="{x:Bind Hex}">
+                                    <Grid>
+                                        <Border Background="{x:Bind Brush}"
+                                                CornerRadius="6"
+                                                BorderThickness="1"
+                                                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                        <FontIcon Glyph="&#xE73E;"
+                                                  FontSize="17"
+                                                  Foreground="White"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Visibility="{x:Bind SelectionVisibility, Mode=OneWay}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Свой цвет…">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <StackPanel Spacing="12">
+                                        <ColorPicker IsAlphaEnabled="False"
+                                                     IsMoreButtonVisible="True"
+                                                     IsColorSliderVisible="True"
+                                                     IsHexInputVisible="True"
+                                                     Color="{x:Bind ViewModel.AccentColor, Mode=TwoWay}" />
+                                        <Button Content="Сохранить в палитру"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{x:Bind ViewModel.SaveCurrentColorAsPresetCommand}" />
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <TextBlock Text="Свои цвета удаляются правой кнопкой мыши"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Навигация -->
+            <TextBlock Text="Навигация"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,16,0,4" />
+
+            <controls:SettingCard Header="Расположение меню"
+                                  Description="Где показывать список страниц"
+                                  Glyph="&#xE700;">
+                <controls:SettingCard.ActionContent>
+                    <ComboBox MinWidth="180"
+                              AutomationProperties.AutomationId="NavigationCombo"
+                              AutomationProperties.Name="Расположение меню"
+                              SelectedIndex="{x:Bind ViewModel.NavigationIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Слева" />
+                        <ComboBoxItem Content="Слева, компактно" />
+                        <ComboBoxItem Content="Сверху" />
+                    </ComboBox>
+                </controls:SettingCard.ActionContent>
+            </controls:SettingCard>
+
+            <controls:SettingCard Header="Скрывать меню"
+                                  Description="Панель прячется за кнопку и выезжает поверх содержимого"
+                                  Glyph="&#xE8A0;">
+                <controls:SettingCard.ActionContent>
+                    <ToggleSwitch AutomationProperties.AutomationId="AutoHideToggle"
+                                  AutomationProperties.Name="Скрывать меню"
+                                  IsOn="{x:Bind ViewModel.AutoHidePane, Mode=TwoWay}"
+                                  IsEnabled="{x:Bind ViewModel.IsAutoHideAvailable, Mode=OneWay}" />
+                </controls:SettingCard.ActionContent>
+            </controls:SettingCard>
+
+            <!-- Звук -->
+            <TextBlock Text="Звук"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,16,0,4" />
+
+            <controls:SettingCard Header="Звуки интерфейса"
+                                  Description="Отклик на нажатия, переходы и открытие диалогов"
+                                  Glyph="&#xE767;"
+                                  SubContentVisibility="{x:Bind ViewModel.SpatialSoundVisibility, Mode=OneWay}">
+                <controls:SettingCard.ActionContent>
+                    <ToggleSwitch AutomationProperties.AutomationId="SoundsToggle"
+                                  AutomationProperties.Name="Звуки интерфейса"
+                                  IsOn="{x:Bind ViewModel.EnableSounds, Mode=TwoWay}" />
+                </controls:SettingCard.ActionContent>
+                <controls:SettingCard.SubContent>
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Пространственное звучание" TextWrapping="Wrap" />
+                            <TextBlock Text="Звук приходит с той стороны, где находится элемент"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1"
+                                      HorizontalAlignment="Right"
+                                      AutomationProperties.AutomationId="SpatialSoundToggle"
+                                      AutomationProperties.Name="Пространственное звучание"
+                                      IsOn="{x:Bind ViewModel.EnableSpatialSound, Mode=TwoWay}" />
+                    </Grid>
+                </controls:SettingCard.SubContent>
+            </controls:SettingCard>
+
+            <Button Content="Сбросить оформление"
+                    Margin="0,16,0,0"
+                    Command="{x:Bind ViewModel.ResetAppearanceCommand}" />
+
+            <!-- Почта. Токен даёт доступ ко всей организации, поэтому раздел только для администратора. -->
+            <TextBlock Text="Корпоративная почта"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,24,0,4"
+                       Visibility="{x:Bind ViewModel.MailSectionVisibility}" />
+
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}"
+                    Padding="16,14"
+                    Visibility="{x:Bind ViewModel.MailSectionVisibility}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{x:Bind ViewModel.MailStatus, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+
+                    <PasswordBox Header="Токен доступа Yandex 360"
+                                 PlaceholderText="вставьте токен и нажмите «Сохранить»"
+                                 AutomationProperties.AutomationId="MailTokenBox"
+                                 AutomationProperties.Name="Токен доступа Yandex 360"
+                                 Password="{x:Bind ViewModel.MailToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Text="Токен хранится в диспетчере учётных данных Windows под вашей учётной записью и в файлы приложения не попадает."
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Сохранить"
+                                Command="{x:Bind ViewModel.SaveMailTokenCommand}"
+                                AutomationProperties.Name="Сохранить токен" />
+                        <Button Content="Проверить"
+                                Command="{x:Bind ViewModel.CheckMailCommand}"
+                                AutomationProperties.Name="Проверить соединение с почтой" />
+                        <Button Content="Удалить токен"
+                                Command="{x:Bind ViewModel.DeleteMailTokenCommand}" />
+                        <ProgressRing IsActive="{x:Bind ViewModel.IsCheckingMail, Mode=OneWay}"
+                                      Width="20"
+                                      Height="20"
+                                      VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Text="{x:Bind ViewModel.MailCheckResult, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- Разработка. Раздела нет в сборке Release. -->
+            <TextBlock Text="Разработка"
+                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Margin="0,24,0,4"
+                       Visibility="{x:Bind ViewModel.DevelopmentVisibility}" />
+
+            <controls:SettingCard Header="Тестовые данные вместо домена"
+                                  Description="Подставной пользователь и справочник — можно работать без Active Directory"
+                                  Glyph="&#xE7BA;"
+                                  Visibility="{x:Bind ViewModel.DevelopmentVisibility}"
+                                  SubContentVisibility="{x:Bind ViewModel.FakeAdminVisibility, Mode=OneWay}">
+                <controls:SettingCard.ActionContent>
+                    <ToggleSwitch AutomationProperties.AutomationId="FakeDataToggle"
+                                  AutomationProperties.Name="Тестовые данные вместо домена"
+                                  IsOn="{x:Bind ViewModel.UseFakeData, Mode=TwoWay}" />
+                </controls:SettingCard.ActionContent>
+                <controls:SettingCard.SubContent>
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Права администратора" TextWrapping="Wrap" />
+                            <TextBlock Text="Посмотреть приложение глазами администратора или обычного сотрудника"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1"
+                                      HorizontalAlignment="Right"
+                                      AutomationProperties.AutomationId="FakeAdminToggle"
+                                      AutomationProperties.Name="Права администратора"
+                                      IsOn="{x:Bind ViewModel.FakeUserIsAdmin, Mode=TwoWay}" />
+                    </Grid>
+                </controls:SettingCard.SubContent>
+            </controls:SettingCard>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

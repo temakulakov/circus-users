@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Circus.Users.App.Views.AddUserPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid Margin="36,20,36,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="760" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Spacing="16">
+                    <TextBlock Text="Добавить пользователя"
+                               Style="{StaticResource TitleTextBlockStyle}" />
+
+                    <InfoBar IsOpen="True"
+                             IsClosable="False"
+                             Severity="Warning"
+                             Message="{x:Bind ViewModel.WriteTargetNotice, Mode=OneWay}" />
+
+                    <TextBox Header="ФИО полностью"
+                             PlaceholderText="Фамилия Имя Отчество"
+                             AutomationProperties.AutomationId="FullNameBox"
+                             AutomationProperties.Name="ФИО полностью"
+                             Text="{x:Bind ViewModel.FullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Header="Фамилия"
+                                 AutomationProperties.Name="Фамилия"
+                                 Text="{x:Bind ViewModel.LastName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Column="1"
+                                 Header="Имя"
+                                 AutomationProperties.Name="Имя"
+                                 Text="{x:Bind ViewModel.FirstName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Column="2"
+                                 Header="Отчество"
+                                 AutomationProperties.Name="Отчество"
+                                 Text="{x:Bind ViewModel.MiddleName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Header="Учётная запись"
+                                 AutomationProperties.AutomationId="AccountNameBox"
+                                 AutomationProperties.Name="Учётная запись"
+                                 Text="{x:Bind ViewModel.AccountName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Column="1"
+                                 Header="Электронная почта"
+                                 IsReadOnly="True"
+                                 AutomationProperties.Name="Электронная почта"
+                                 Text="{x:Bind ViewModel.Email, Mode=OneWay}" />
+                        <Button Grid.Column="2"
+                                Content="Задать вручную"
+                                VerticalAlignment="Bottom"
+                                Command="{x:Bind ViewModel.EditAccountNameManuallyCommand}" />
+                    </Grid>
+
+                    <InfoBar IsOpen="{x:Bind ViewModel.HasLoginProblem, Mode=OneWay}"
+                             IsClosable="False"
+                             Severity="Error"
+                             Message="{x:Bind ViewModel.LoginHint, Mode=OneWay}" />
+
+                    <TextBlock Text="{x:Bind ViewModel.LoginHint, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind HintVisibility, Mode=OneWay}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Header="Должность"
+                                 AutomationProperties.Name="Должность"
+                                 Text="{x:Bind ViewModel.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Column="1"
+                                 Header="Добавочный телефон"
+                                 AutomationProperties.Name="Добавочный телефон"
+                                 Text="{x:Bind ViewModel.IpPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <ComboBox Header="Подразделение"
+                              HorizontalAlignment="Stretch"
+                              AutomationProperties.AutomationId="DepartmentCombo"
+                              AutomationProperties.Name="Подразделение"
+                              ItemsSource="{x:Bind ViewModel.Departments}"
+                              DisplayMemberPath="Name"
+                              SelectedItem="{x:Bind ViewModel.SelectedDepartment, Mode=TwoWay}" />
+
+                    <TextBlock Text="{x:Bind ViewModel.TemplateSummary, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                        <Button Content="Создать сотрудника"
+                                Style="{StaticResource AccentButtonStyle}"
+                                IsEnabled="{x:Bind ViewModel.CanCreate, Mode=OneWay}"
+                                Click="OnCreateClick"
+                                AutomationProperties.Name="Создать сотрудника" />
+                        <Button Content="Очистить" Command="{x:Bind ViewModel.ResetCommand}" />
+                        <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                      Width="20"
+                                      Height="20"
+                                      VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Учётные данные показываются один раз: пароли нигде не сохраняются. -->
+        <ContentDialog x:Name="ResultDialog"
+                       Title="Сотрудник создан"
+                       CloseButtonText="Готово"
+                       DefaultButton="Close">
+            <StackPanel Spacing="12" Width="420">
+                <InfoBar IsOpen="True"
+                         IsClosable="False"
+                         Severity="Warning"
+                         Title="Запишите пароли сейчас"
+                         Message="Приложение их не сохраняет и показать повторно не сможет." />
+
+                <Grid ColumnSpacing="12" RowSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Учётная запись" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="ResultAccount" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                    <Button Grid.Row="0" Grid.Column="2" Tag="account" Click="OnCopyClick" Content="Копировать" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Пароль в домене" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="ResultDomainPassword" FontFamily="Consolas" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                    <Button Grid.Row="1" Grid.Column="2" Tag="domain-password" Click="OnCopyClick" Content="Копировать" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Почта" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="ResultEmail" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                    <Button Grid.Row="2" Grid.Column="2" Tag="email" Click="OnCopyClick" Content="Копировать" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Пароль от почты" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" x:Name="ResultMailPassword" FontFamily="Consolas" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                    <Button Grid.Row="3" Grid.Column="2" Tag="mail-password" Click="OnCopyClick" Content="Копировать" />
+                </Grid>
+
+                <Button Content="Скопировать всё" HorizontalAlignment="Stretch" Tag="all" Click="OnCopyClick" />
+
+                <InfoBar x:Name="ResultWarnings"
+                         IsOpen="False"
+                         IsClosable="False"
+                         Severity="Informational"
+                         Title="Осталось доделать вручную" />
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

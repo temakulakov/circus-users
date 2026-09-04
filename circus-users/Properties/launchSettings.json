@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "circus-users (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "circus-users (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

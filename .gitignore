@@ -1,0 +1,32 @@
+## Сборка
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+
+## Visual Studio
+.vs/
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+## Пакеты и публикация
+[Pp]ackages/
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+AppPackages/
+BundleArtifacts/
+publish/
+artifacts/
+
+## Сертификаты — в репозиторий не кладём
+*.pfx
+*.cer
+*.snk
+
+## Локальные переопределения конфигурации
+appsettings.Local.json
