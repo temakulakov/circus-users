@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using Circus.Users.App.Services;
 using Circus.Users.Core.Abstractions;
 using Circus.Users.Core.ActiveDirectory;
@@ -132,6 +133,14 @@ internal sealed partial class AddressBookViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEmpty;
 
+    /// <summary>Что написать вместо таблицы, когда показывать нечего.</summary>
+    [ObservableProperty]
+    private string _emptyText = string.Empty;
+
+    /// <summary>Связь с контроллером домена или шарой потеряна.</summary>
+    [ObservableProperty]
+    private string _errorText = string.Empty;
+
     [ObservableProperty]
     private double _tableWidth;
 
@@ -173,6 +182,10 @@ internal sealed partial class AddressBookViewModel : ObservableObject
     public bool IsAdmin => _session.Current.IsAdmin;
 
     public Visibility AdminVisibility => IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>Полоса о потере связи показывается, только когда есть о чём сказать.</summary>
+    public Visibility ErrorVisibility =>
+        string.IsNullOrEmpty(ErrorText) ? Visibility.Collapsed : Visibility.Visible;
 
     /// <summary>Сотрудник, которого правят в открытом диалоге.</summary>
     public EmployeeCard? EditTarget { get; private set; }
@@ -244,7 +257,113 @@ internal sealed partial class AddressBookViewModel : ObservableObject
         }
 
         IsEmpty = groups.Count == 0;
+        EmptyText = BuildEmptyText();
+        ErrorText = BuildErrorText();
         SelectedRow = null;
+    }
+
+    /// <summary>
+    /// Как сотрудник называется в журнале: ФИО и учётная запись.
+    /// Полных тёзок в каталоге хватает, и по одному ФИО потом не разобраться.
+    /// </summary>
+    private static string Describe(EmployeeCard employee) =>
+        employee.Get("sAMAccountName") is { } account
+            ? $"{employee.DisplayName} ({account})"
+            : employee.DisplayName;
+
+    /// <summary>Имя файла по умолчанию для выгрузки.</summary>
+
+    public string SuggestedExportName =>
+        $"Адресная книга {DateTimeOffset.Now:yyyy-MM-dd}";
+
+    /// <summary>Сколько строк уйдёт в выгрузку — то же, что видно в таблице.</summary>
+    public int VisibleCount => Groups.Sum(group => group.Count);
+
+    /// <summary>
+    /// Собирает таблицу в CSV: те же колонки и та же фильтрация, что на экране.
+    /// </summary>
+    /// <remarks>
+    /// Разделитель — точка с запятой, а файл пишется с меткой порядка байтов:
+    /// в русской локали Excel открывает такой файл сразу, без мастера импорта.
+    /// </remarks>
+    public string BuildCsv()
+    {
+        var builder = new StringBuilder();
+        var columns = Columns.ToList();
+
+        builder.Append(Escape("Подразделение"));
+        foreach (var column in columns)
+        {
+            builder.Append(';').Append(Escape(column.Title));
+        }
+
+        builder.AppendLine();
+
+        foreach (var group in Groups)
+        {
+            foreach (var row in group)
+            {
+                builder.Append(Escape(group.Key));
+
+                foreach (var cell in row.Cells)
+                {
+                    builder.Append(';').Append(Escape(cell.Value));
+                }
+
+                builder.AppendLine();
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>Экранирует значение по правилам CSV.</summary>
+    private static string Escape(string? value)
+    {
+        var text = value ?? string.Empty;
+
+        // Кавычки, разделители и переносы строк должны пережить выгрузку без потерь.
+        if (!text.Any(symbol => symbol is '"' or ';' or '\n' or '\r'))
+        {
+            return text;
+        }
+
+        return $"\"{text.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
+    }
+
+    /// <summary>Почему таблица пуста: не нашлось по запросу или справочник ещё не приехал.</summary>
+    private string BuildEmptyText()
+
+    {
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            return $"Ничего не найдено по запросу «{SearchText.Trim()}»";
+        }
+
+        if (_cache.Employees.Count == 0)
+        {
+            return _cache.IsRefreshing
+                ? "Справочник загружается…"
+                : "Справочник пуст. Проверьте связь с контроллером домена и настройки поиска.";
+        }
+
+        return "Никого не нашлось";
+    }
+
+    /// <summary>
+    /// Потеря связи не должна выглядеть как пустой справочник: если данные всё же есть,
+    /// показываем их и предупреждаем, что они устарели.
+    /// </summary>
+    private string BuildErrorText()
+    {
+        if (_cache.LastError is not { } error)
+        {
+            return string.Empty;
+        }
+
+        return _cache.LastUpdated is { } updated
+            ? $"Справочник не обновляется: {error} Показаны данные на {updated:HH:mm}."
+            : $"Не удалось прочитать справочник: {error}";
     }
 
     private string BuildStatus()
@@ -269,6 +388,8 @@ internal sealed partial class AddressBookViewModel : ObservableObject
     }
 
     partial void OnSearchTextChanged(string value) => Rebuild();
+
+    partial void OnErrorTextChanged(string value) => OnPropertyChanged(nameof(ErrorVisibility));
 
     /// <summary>
     /// Какой вид применить: сначала личная настройка, затем общая от администратора,
@@ -430,7 +551,7 @@ internal sealed partial class AddressBookViewModel : ObservableObject
             await _audit.WriteAsync(
                 _session.Current.AccountName,
                 isBlocked ? "Блокировка учётной записи" : "Разблокировка учётной записи",
-                employee.DisplayName,
+                Describe(employee),
                 employee.DistinguishedName);
         }
         catch (Exception ex)
@@ -450,11 +571,16 @@ internal sealed partial class AddressBookViewModel : ObservableObject
             var removed = await _writer.DismissAsync(employee.DistinguishedName);
 
             // Снятые группы записываем полностью: только по ним увольнение можно откатить.
+            // Учётная запись обязательна — по одному ФИО тёзок в каталоге не различить.
+            var groups = removed.Count > 0
+                ? $"сняты группы: {string.Join("; ", removed)}"
+                : "групп не было";
+
             await _audit.WriteAsync(
                 _session.Current.AccountName,
                 "Увольнение",
-                employee.DisplayName,
-                removed.Count > 0 ? $"сняты группы: {string.Join("; ", removed)}" : "групп не было");
+                Describe(employee),
+                $"{groups}; {employee.DistinguishedName}");
         }
         catch (Exception ex)
         {

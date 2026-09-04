@@ -157,8 +157,10 @@ public sealed class Yandex360MailService : IMailService
 
         if (!response.IsSuccessStatusCode)
         {
-            // Пароль вырезается: диагностика уходит в журнал на общей шаре.
-            var sent = json.Replace(password, "***", StringComparison.Ordinal);
+            // Диагностика уходит в журнал на общей шаре, поэтому пароль в неё не попадает.
+            // Заменяется не текст пароля в готовом JSON, а само поле: сериализатор
+            // экранирует символы, и подстроки пароля в JSON может просто не оказаться.
+            var sent = JsonSerializer.Serialize(body with { Password = "***" }, Json);
 
             _logger.LogWarning("Yandex 360 отклонил создание ящика ({Sent})", sent);
 
@@ -304,6 +306,15 @@ public sealed class Yandex360MailService : IMailService
         };
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        // Отдельные коды API приходят кодом 400 и различаются только текстом.
+        // Самый частый из них — исчерпанные места в организации; объясняем его словами.
+        if (body.Contains("users_limit_error", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Yandex 360: в организации закончились места для сотрудников. "
+                   + "Освободите или докупите места в админке, затем повторите создание ящика.";
+        }
+
         var details = body.Length > 200 ? body[..200] : body;
 
         return details.Length > 0 ? $"Yandex 360: {reason}. {details}" : $"Yandex 360: {reason}.";
@@ -355,7 +366,7 @@ public sealed class Yandex360MailService : IMailService
         public string? Email { get; init; }
     }
 
-    internal sealed class CreateUserBody
+    internal sealed record CreateUserBody
     {
         public required string Nickname { get; init; }
 
@@ -367,7 +378,7 @@ public sealed class Yandex360MailService : IMailService
         public required NameBody Name { get; init; }
     }
 
-    internal sealed class NameBody
+    internal sealed record NameBody
     {
         public required string First { get; init; }
 

@@ -62,6 +62,7 @@ public sealed partial class MainWindow : Window
         var adminOnly = user.IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         AddUserItem.Visibility = adminOnly;
         DepartmentsItem.Visibility = adminOnly;
+        JournalItem.Visibility = adminOnly;
 
         // Если открытая страница только что стала недоступна, уводим на общедоступную.
         var selected = NavView.SelectedItem as NavigationViewItem;
@@ -146,6 +147,29 @@ public sealed partial class MainWindow : Window
         _preferences.Save();
 
         SetPaneWidth(MeasureAutoPaneWidth());
+    }
+
+    /// <summary>
+    /// Переход по номеру страницы: Ctrl+1 — первый доступный пункт меню и так далее.
+    /// Скрытые для обычного пользователя пункты в счёт не идут, поэтому номера
+    /// совпадают с тем, что человек видит на экране.
+    /// </summary>
+    private void OnNavigateAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+
+        var index = sender.Key - Windows.System.VirtualKey.Number1;
+
+        var visible = NavView.MenuItems
+            .Concat(NavView.FooterMenuItems)
+            .OfType<NavigationViewItem>()
+            .Where(item => item.Visibility == Visibility.Visible)
+            .ToList();
+
+        if (index >= 0 && index < visible.Count)
+        {
+            NavView.SelectedItem = visible[index];
+        }
     }
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

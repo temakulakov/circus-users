@@ -216,6 +216,15 @@ internal sealed partial class DepartmentsViewModel : ObservableObject
         ? "Тестовый режим: шаблон сохранится только до закрытия приложения."
         : "Внимание: шаблон будет записан в Active Directory.";
 
+    /// <summary>Общая папка недоступна — отметки «не отдел» не читаются и не сохранятся.</summary>
+    public string RegistryErrorText => _registry.LastError is { } error
+        ? $"Общие настройки недоступны: {error} Отметки подразделений не сохранятся, "
+          + "а уже сделанные не видны — все каталоги временно считаются отделами."
+        : string.Empty;
+
+    public Visibility RegistryErrorVisibility =>
+        string.IsNullOrEmpty(RegistryErrorText) ? Visibility.Collapsed : Visibility.Visible;
+
     /// <summary>Пояснение под переключателем «Это подразделение».</summary>
     public string DepartmentSwitchNotice => IsDepartment
         ? "Каталог доступен для создания сотрудников, шаблон применяется к новым учётным записям."
@@ -224,7 +233,12 @@ internal sealed partial class DepartmentsViewModel : ObservableObject
 
     private void OnCacheChanged(object? sender, EventArgs e) => _dispatcher.TryEnqueue(Rebuild);
 
-    private void OnRegistryChanged(object? sender, EventArgs e) => _dispatcher.TryEnqueue(ApplyRegistryToTree);
+    private void OnRegistryChanged(object? sender, EventArgs e) => _dispatcher.TryEnqueue(() =>
+    {
+        ApplyRegistryToTree();
+        OnPropertyChanged(nameof(RegistryErrorText));
+        OnPropertyChanged(nameof(RegistryErrorVisibility));
+    });
 
     private void Rebuild()
     {

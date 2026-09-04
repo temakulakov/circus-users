@@ -8,8 +8,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="F5" Invoked="OnRefreshAccelerator" />
+    </Page.KeyboardAccelerators>
+
     <Grid Margin="36,20,36,24" RowSpacing="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -21,7 +26,7 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
             <Button Command="{x:Bind ViewModel.RefreshCommand}"
-                    ToolTipService.ToolTip="Обновить справочник"
+                    ToolTipService.ToolTip="Обновить справочник (F5)"
                     AutomationProperties.Name="Обновить подразделения">
                 <FontIcon Glyph="&#xE72C;" FontSize="15" />
             </Button>
@@ -32,7 +37,14 @@
                        TextTrimming="CharacterEllipsis" />
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnSpacing="16">
+        <InfoBar Grid.Row="2"
+                 IsOpen="True"
+                 IsClosable="False"
+                 Severity="Warning"
+                 Message="{x:Bind ViewModel.RegistryErrorText, Mode=OneWay}"
+                 Visibility="{x:Bind ViewModel.RegistryErrorVisibility, Mode=OneWay}" />
+
+        <Grid Grid.Row="3" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="260" MaxWidth="420" />
                 <ColumnDefinition Width="2*" />

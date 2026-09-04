@@ -13,6 +13,7 @@ internal sealed class NavigationService
         public const string AddUser = "add-user";
         public const string AddressBook = "address-book";
         public const string Departments = "departments";
+        public const string Journal = "journal";
         public const string Settings = "settings";
     }
 
@@ -21,6 +22,7 @@ internal sealed class NavigationService
         [Pages.AddUser] = typeof(AddUserPage),
         [Pages.AddressBook] = typeof(AddressBookPage),
         [Pages.Departments] = typeof(DepartmentsPage),
+        [Pages.Journal] = typeof(JournalPage),
         [Pages.Settings] = typeof(SettingsPage),
     };
 

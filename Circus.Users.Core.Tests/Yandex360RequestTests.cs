@@ -85,7 +85,40 @@ public class Yandex360RequestTests
         Assert.Contains("\"isEnabled\":false", handler.LastBody);
     }
 
+    /// <summary>
+    /// Диагностика отказа уходит в журнал на общей шаре, поэтому пароля в ней быть не должно.
+    /// Проверяем на пароле со знаком «плюс»: сериализатор экранирует его как \u002B,
+    /// и вырезание пароля по тексту такой случай пропускало.
+    /// </summary>
+    [Fact]
+    public async Task ПарольНеПопадаетВТекстОшибки()
+    {
+        var handler = new CapturingHandler { StatusCode = HttpStatusCode.BadRequest };
+        var service = CreateService(handler);
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.CreateMailboxAsync(new NewMailboxRequest
+            {
+                Nickname = "i.ivanov",
+                FirstName = "Иван",
+                LastName = "Иванов",
+            }));
+
+        var sentPassword = ExtractPassword(handler.LastBody!);
+
+        Assert.Contains("\"password\":\"***\"", error.Message);
+        Assert.DoesNotContain(sentPassword, error.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>Достаёт пароль из отправленного тела — он генерируется внутри службы.</summary>
+    private static string ExtractPassword(string body)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(body);
+        return document.RootElement.GetProperty("password").GetString()!;
+    }
+
     private static Yandex360MailService CreateService(CapturingHandler handler)
+
     {
         var settings = Options.Create(new AppSettings
         {
@@ -107,6 +140,9 @@ public class Yandex360RequestTests
 
         public long? LastContentLength { get; private set; }
 
+        /// <summary>Каким кодом отвечать. По умолчанию — успех.</summary>
+        public HttpStatusCode StatusCode { get; init; } = HttpStatusCode.OK;
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
@@ -117,7 +153,7 @@ public class Yandex360RequestTests
                 ? null
                 : await request.Content.ReadAsStringAsync(cancellationToken);
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
+            return new HttpResponseMessage(StatusCode)
             {
                 Content = new StringContent(
                     """{"id":"1","nickname":"i.ivanov","email":"i.ivanov@circus.ru","aliases":[]}""",

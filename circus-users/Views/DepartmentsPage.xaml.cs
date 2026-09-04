@@ -4,6 +4,7 @@ using Circus.Users.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 
 namespace Circus.Users.App.Views;
 
@@ -108,6 +109,12 @@ public sealed partial class DepartmentsPage : Page, INotifyPropertyChanged
         };
 
         return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private void OnRefreshAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        ViewModel.RefreshCommand.Execute(null);
     }
 
     private async void OnSaveClick(object sender, RoutedEventArgs e)

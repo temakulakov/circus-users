@@ -1,3 +1,4 @@
+using System.Text;
 using Circus.Users.App.ViewModels;
 using Circus.Users.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,72 @@ public sealed partial class AddressBookPage : Page
     }
 
     internal AddressBookViewModel ViewModel { get; }
+
+    private void OnRefreshAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        ViewModel.RefreshCommand.Execute(null);
+    }
+
+    private void OnSearchAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        SearchBox.Focus(FocusState.Programmatic);
+    }
+
+    private async void OnExportAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        await ExportAsync();
+    }
+
+    private async void OnExportClick(object sender, RoutedEventArgs e) => await ExportAsync();
+
+    /// <summary>
+    /// Выгружает то, что видно на экране: те же колонки и тот же фильтр.
+    /// </summary>
+    private async Task ExportAsync()
+    {
+        if (ViewModel.VisibleCount == 0)
+        {
+            await ShowMessageAsync("Выгружать нечего", "В таблице сейчас нет ни одной строки.");
+            return;
+        }
+
+        var picker = new Windows.Storage.Pickers.FileSavePicker
+        {
+            SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary,
+            SuggestedFileName = ViewModel.SuggestedExportName,
+        };
+
+        picker.FileTypeChoices.Add("Таблица CSV", [".csv"]);
+
+        // Без владельца системный диалог в WinUI не открывается.
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, App.MainWindowHandle);
+
+        var file = await picker.PickSaveFileAsync();
+        if (file is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Метка порядка байтов обязательна: без неё Excel в русской локали
+            // открывает файл в однобайтовой кодировке и показывает мусор вместо кириллицы.
+            var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+            await File.WriteAllTextAsync(file.Path, ViewModel.BuildCsv(), encoding);
+
+            await ShowMessageAsync(
+                "Готово",
+                $"Выгружено строк: {ViewModel.VisibleCount}.\n{file.Path}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await ShowMessageAsync("Не удалось сохранить файл", ex.Message);
+        }
+    }
+
 
     // Карандаш проявляется по наведению. Состояния наведения у элемента списка
     // в разметке не выразить, поэтому меняем прозрачность вручную.

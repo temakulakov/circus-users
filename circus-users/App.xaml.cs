@@ -31,6 +31,12 @@ public partial class App : Application
         };
     }
 
+    /// <summary>
+    /// Дескриптор главного окна. Нужен системным диалогам — выбору файла и подобным:
+    /// без владельца они не показываются.
+    /// </summary>
+    public static nint MainWindowHandle { get; private set; }
+
     /// <summary>Контейнер приложения. Страницы достают из него свои ViewModel.</summary>
     public static IServiceProvider Services =>
         ((App)Current)._host?.Services
@@ -57,6 +63,7 @@ public partial class App : Application
             _host.Services.GetRequiredService<ThemeService>().InstallResources();
 
             _window = _host.Services.GetRequiredService<MainWindow>();
+            MainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
             _window.Activate();
 
             // Справочник читается в фоне, окно его не ждёт.
@@ -173,6 +180,7 @@ public partial class App : Application
         // и выбранный сотрудник должны переживать навигацию.
         builder.Services.AddSingleton<AddressBookViewModel>();
         builder.Services.AddSingleton<DepartmentsViewModel>();
+        builder.Services.AddSingleton<JournalViewModel>();
         builder.Services.AddSingleton<AddUserViewModel>();
 
         return builder.Build();
